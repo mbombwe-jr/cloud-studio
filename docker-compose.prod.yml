@@ -41,9 +41,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: zoo-compose-backend
-    depends_on:
-      postgres:
-        condition: service_healthy
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
