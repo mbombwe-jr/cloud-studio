@@ -1,0 +1,30 @@
+info:
+  name: deposit-preview
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/wallets/deposits/preview"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "15000",
+        "phoneNumber": "0712345678"
+      }
+  auth: inherit
+
+docs: |
+  Optional pre-check that mirrors the collection USSD push preview.
+  Nothing is created or charged.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

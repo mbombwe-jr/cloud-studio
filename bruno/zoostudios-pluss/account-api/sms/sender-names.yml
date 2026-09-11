@@ -1,0 +1,22 @@
+info:
+  name: sender-names
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/sms/sender-names"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  Sender names available to this account (own + shared pool).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

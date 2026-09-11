@@ -1,0 +1,76 @@
+version: 1
+workers:
+  configuration:
+    version: 0.23.0
+    type: engine
+    dependencies: {}
+  console:
+    version: 1.9.18
+    type: binary
+    dependencies:
+      configuration: 0.x
+    source:
+      kind: binary
+      artifacts:
+        aarch64-apple-darwin:
+          url: https://github.com/iii-hq/workers/releases/download/console/v1.9.18/console-aarch64-apple-darwin.tar.gz
+          sha256: 7ff9c337fe2355f736e0fb67d566290a337ddbe8bbfe66ca6d9e7be79c5f1510
+        aarch64-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/console/v1.9.18/console-aarch64-pc-windows-msvc.zip
+          sha256: a36b8cec1247e9a386084991b11d1fccfb94424cb6b0c48325de69b519a1efe9
+        aarch64-unknown-linux-gnu:
+          url: https://github.com/iii-hq/workers/releases/download/console/v1.9.18/console-aarch64-unknown-linux-gnu.tar.gz
+          sha256: 8ea4bbad68259c79a002656da0d8a4fb5023d82f63a55968c1da2291fe8df9b0
+        armv7-unknown-linux-gnueabihf:
+          url: https://github.com/iii-hq/workers/releases/download/console/v1.9.18/console-armv7-unknown-linux-gnueabihf.tar.gz
+          sha256: 7201531bd78ba1e53bcdef4a9fffe7fa88a7c449613ed8b3d5b55ad967701e02
+        i686-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/console/v1.9.18/console-i686-pc-windows-msvc.zip
+          sha256: 36064e1c1b415e32af5d60f7b5b0103199abbd09335bcb37be9b2ed9f7baeca7
+        x86_64-apple-darwin:
+          url: https://github.com/iii-hq/workers/releases/download/console/v1.9.18/console-x86_64-apple-darwin.tar.gz
+          sha256: 970b2fc1fb4b04b9d338896df74f540deb756a0f66a4eab433a5b31e5a817455
+        x86_64-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/console/v1.9.18/console-x86_64-pc-windows-msvc.zip
+          sha256: 5d4536233086418510b897045e144af29c81f8c075e516bb351833fef74c02ab
+        x86_64-unknown-linux-gnu:
+          url: https://github.com/iii-hq/workers/releases/download/console/v1.9.18/console-x86_64-unknown-linux-gnu.tar.gz
+          sha256: 3c8b7edea75e3cc0063a2b24fb52ee04c75743e67885f3d2c4ac76cf89da6a25
+        x86_64-unknown-linux-musl:
+          url: https://github.com/iii-hq/workers/releases/download/console/v1.9.18/console-x86_64-unknown-linux-musl.tar.gz
+          sha256: 38a1a5763ece8a2d69e13bb0a353cb01c0a9f03e849c710177ef94e79d81d452
+  http:
+    version: 0.21.8
+    type: binary
+    dependencies:
+      configuration: 0.x
+    source:
+      kind: binary
+      artifacts:
+        aarch64-apple-darwin:
+          url: https://github.com/iii-hq/workers/releases/download/http/v0.21.8/http-aarch64-apple-darwin.tar.gz
+          sha256: 246c3a58a9cde7e44d3241b418aec3197539e4b161aed73eea07f53b2124fe3a
+        aarch64-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/http/v0.21.8/http-aarch64-pc-windows-msvc.zip
+          sha256: a900f7bcec8023878ff5edadb80958fcf3c5d5ba38b51dfcd8a5f57a21b1254a
+        aarch64-unknown-linux-gnu:
+          url: https://github.com/iii-hq/workers/releases/download/http/v0.21.8/http-aarch64-unknown-linux-gnu.tar.gz
+          sha256: 8c69056df27b25eb6523b970be4bf0cfcae6e86b5be58cb5f204291c293492f5
+        armv7-unknown-linux-gnueabihf:
+          url: https://github.com/iii-hq/workers/releases/download/http/v0.21.8/http-armv7-unknown-linux-gnueabihf.tar.gz
+          sha256: 887e8b685b107ab622bd2924350d10304c5ce7f0b053e10cd2a55aaa4547383c
+        i686-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/http/v0.21.8/http-i686-pc-windows-msvc.zip
+          sha256: c710c80d4654b940607c9dd369ee373ff1ebe1d121c8b4e6673e85c6d56e5edb
+        x86_64-apple-darwin:
+          url: https://github.com/iii-hq/workers/releases/download/http/v0.21.8/http-x86_64-apple-darwin.tar.gz
+          sha256: 47dae0760f9cfc8afe89478c6947cb68e24456ba227417ce9cfcbb6d5368910e
+        x86_64-pc-windows-msvc:
+          url: https://github.com/iii-hq/workers/releases/download/http/v0.21.8/http-x86_64-pc-windows-msvc.zip
+          sha256: f668c1a99e8b72de38140c6cb596018c2aa97684fbfbfc952ce62904197b5bd7
+        x86_64-unknown-linux-gnu:
+          url: https://github.com/iii-hq/workers/releases/download/http/v0.21.8/http-x86_64-unknown-linux-gnu.tar.gz
+          sha256: 78727e36265b754361ed5b1763ac662c54853a0364530be15d8c5bdba48e3014
+        x86_64-unknown-linux-musl:
+          url: https://github.com/iii-hq/workers/releases/download/http/v0.21.8/http-x86_64-unknown-linux-musl.tar.gz
+          sha256: baa4755edafe91d3065996b9a97fe5b1e0098e39b208a505dda0c5d1c0de0f1d

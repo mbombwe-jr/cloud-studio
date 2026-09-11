@@ -1,0 +1,23 @@
+info:
+  name: refresh-collection
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/collections/{{collectionReference}}/refresh"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  Pulls the latest status from ClickPesa and reconciles the local
+  record (useful when a callback was missed).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

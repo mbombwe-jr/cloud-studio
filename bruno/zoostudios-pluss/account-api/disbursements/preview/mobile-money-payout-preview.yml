@@ -1,0 +1,31 @@
+info:
+  name: mobile-money-payout-preview
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/disbursements/mobile-money/preview"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "25000",
+        "phoneNumber": "0751234567"
+      }
+  auth: inherit
+
+docs: |
+  Mobile money payout preview (parity with the USSD push preview):
+  operator detection, exact platform fee and active methods. Nothing is
+  executed and no wallet is debited.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

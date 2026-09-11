@@ -1,0 +1,33 @@
+info:
+  name: deposit-initiate
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/wallets/deposits"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "15000",
+        "phoneNumber": "0712345678",
+        "reference": "TOPUP-01"
+      }
+  auth: inherit
+
+docs: |
+  Wallet deposit processed exactly like a collection: a USSD push is
+  sent to the payer; once ClickPesa authorises the amount the value is
+  credited to the DISBURSEMENT wallet (never the collection wallet).
+  Copy the 20-char reference and poll GET /wallets/deposits/:reference.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

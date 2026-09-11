@@ -1,0 +1,22 @@
+info:
+  name: list-payouts
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{baseUrl}}/disbursements?page=1&limit=20"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  Payouts of this account. Optional &status=PENDING|PROCESSING|SUCCESSFUL|FAILED|REVERSED.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

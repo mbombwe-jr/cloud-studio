@@ -1,0 +1,23 @@
+info:
+  name: list-wallets
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/wallets"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  ADMIN + SERVICEMAN. COLLECTION and DISBURSEMENT wallets with
+  balances, status and frozen flags.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

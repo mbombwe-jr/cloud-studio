@@ -1,0 +1,32 @@
+info:
+  name: deposit
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/wallets/COLLECTION/deposit"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "50000",
+        "reason": "Top-up for collections float",
+        "reference": "DEP-0001"
+      }
+  auth: inherit
+
+docs: |
+  API deposit. Requires meta.walletActions: true on the corresponding
+  service permission (secure-first default: denied).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+​

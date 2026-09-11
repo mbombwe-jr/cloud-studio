@@ -1,0 +1,47 @@
+info:
+  name: create-batch
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/disbursements/batches"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Weekly supplier payouts",
+        "items": [
+          {
+            "channel": "MOBILE_MONEY",
+            "amount": "25000",
+            "phoneNumber": "255712345678",
+            "reference": "BATCH0001"
+          },
+          {
+            "channel": "BANK",
+            "amount": "120000",
+            "accountNumber": "0151234567800",
+            "accountName": "Supplier Ltd",
+            "bic": "ACTZTZTZ",
+            "reference": "BATCH0002"
+          }
+        ],
+        "metadata": { "cycle": "2026-W36" }
+      }
+  auth: inherit
+
+docs: |
+  Batch payout: 1-500 mixed MOBILE_MONEY / BANK items processed one
+  by one. Per-item failures do not abort the batch. Copy the batch
+  reference into {{batchReference}}.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,32 @@
+info:
+  name: withdraw
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/wallets/DISBURSEMENT/withdraw"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "20000",
+        "reason": "Merchant requested withdrawal",
+        "reference": "WD-0001"
+      }
+  auth: inherit
+
+docs: |
+  API withdrawal. Same walletActions permission gate; frozen wallets
+  and insufficient balances are rejected.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+​

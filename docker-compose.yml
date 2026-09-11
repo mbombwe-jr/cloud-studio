@@ -1,0 +1,146 @@
+# =============================================================================
+# Zoostudios — full-stack Docker Compose (requirement: run the whole system
+# with iii on one command):
+#     docker compose -p zoo-compose up -d --build
+#
+# Services:
+#   postgres      PostgreSQL 18 (fresh volume; migrations auto-applied)
+#   backend       NestJS API (migrate deploy + seed on start, then serve)
+#   user-portal   hardened static server for the client portal
+#   admin-portal  hardened static server for the admin portal
+#   iii (opt-in)  containerized iii engine — `--profile standalone-iii`
+#
+# iii wiring: by default the backend attaches to the HOST iii engine
+# (ws://host.docker.internal:49134) so the system runs with iii and the
+# engine's workers stay managed in one place. For a fully containerised
+# engine instead:  docker compose --profile standalone-iii up -d
+# and set III_URL=ws://iii:49134 in .env.
+#
+# Port strategy (override in .env if they clash with your host services):
+#   POSTGRES_HOST_PORT     default 5433 (host loopback)
+#   BACKEND_HOST_PORT      default 3077 (the systemd deployment uses 3076)
+#   USER_PORTAL_HOST_PORT  default 3012 (systemd uses 3010)
+#   ADMIN_PORTAL_HOST_PORT default 3013 (systemd uses 3011)
+#   III_HOST_PORT          default 49135 (standalone-iii profile only)
+#   PUBLIC_IP              browser-facing IP baked into the portals (default 10.8.0.28)
+# =============================================================================
+
+name: zoostudios
+
+services:
+  postgres:
+    image: postgres:18
+    container_name: zoo-compose-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: zoostudios
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      # mounted one level above PGDATA so postgres:18 can create its data/ subdir
+      - zoo_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d zoostudios"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  iii:
+    image: debian:stable-slim
+    container_name: zoo-compose-iii
+    profiles: ["standalone-iii"]
+    working_dir: /engine
+    entrypoint: ["/usr/local/bin/iii"]
+    environment:
+      HOME: /root
+    volumes:
+      - ./iii:/engine
+      - ${III_BIN_DIR:-/home/mbombwe/.local/bin}:/root/.local/bin:ro
+      - iii_home:/root/.iii
+    ports:
+      - "${III_HOST_PORT:-49135}:49134"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zoo-compose-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      TZ: Africa/Dar_es_Salaam
+      ZOO_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/zoostudios?schema=public
+      # default: attach to the HOST iii engine; use ws://iii:49134 with --profile standalone-iii
+      III_URL: ${III_URL:-ws://host.docker.internal:49134}
+      III_ENABLED: ${III_ENABLED:-true}
+      PUBLIC_BASE_URL: http://${PUBLIC_IP:-10.8.0.28}:${BACKEND_HOST_PORT:-3077}
+      CORS_ORIGINS: http://${PUBLIC_IP:-10.8.0.28}:${USER_PORTAL_HOST_PORT:-3012},http://${PUBLIC_IP:-10.8.0.28}:${ADMIN_PORTAL_HOST_PORT:-3013},http://localhost:${USER_PORTAL_HOST_PORT:-3012},http://localhost:${ADMIN_PORTAL_HOST_PORT:-3013}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      API_KEY_PREFIX: ${API_KEY_PREFIX:-zs}
+      CLICKPESA_BASE_URL: ${CLICKPESA_BASE_URL:-https://api.clickpesa.com}
+      CLICKPESA_CLIENT_ID: ${CLICKPESA_CLIENT_ID:-}
+      CLICKPESA_API_KEY: ${CLICKPESA_API_KEY:-}
+      CLICKPESA_CHECKSUM_KEY: ${CLICKPESA_CHECKSUM_KEY:-}
+      CLICKPESA_CHECKSUM_ENABLED: ${CLICKPESA_CHECKSUM_ENABLED:-false}
+      BEEM_SMS_BASE_URL: ${BEEM_SMS_BASE_URL:-https://apisms.beem.africa}
+      BEEM_API_KEY: ${BEEM_API_KEY:-}
+      BEEM_SECRET_KEY: ${BEEM_SECRET_KEY:-}
+      SMS_DEFAULT_SENDER: ${SMS_DEFAULT_SENDER:-zoofam}
+      MOCK_PROVIDERS: ${MOCK_PROVIDERS:-true}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@zoostudios.internal}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-ChangeMe!2025}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-Platform Admin}
+    ports:
+      - "${BACKEND_HOST_PORT:-3077}:3000"
+    restart: unless-stopped
+
+  user-portal:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.portal
+      args:
+        PORTAL_DIR: user-portal
+        VITE_API_BASE: http://${PUBLIC_IP:-10.8.0.28}:${BACKEND_HOST_PORT:-3077}
+    container_name: zoo-compose-user-portal
+    depends_on:
+      - backend
+    environment:
+      PORT: 3000
+      ROOT: /srv/dist
+      API_ORIGIN: http://${PUBLIC_IP:-10.8.0.28}:${BACKEND_HOST_PORT:-3077}
+      APP_NAME: user-portal
+    ports:
+      - "${USER_PORTAL_HOST_PORT:-3012}:3000"
+    restart: unless-stopped
+
+  admin-portal:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.portal
+      args:
+        PORTAL_DIR: admin-portal
+        VITE_API_BASE: http://${PUBLIC_IP:-10.8.0.28}:${BACKEND_HOST_PORT:-3077}
+    container_name: zoo-compose-admin-portal
+    depends_on:
+      - backend
+    environment:
+      PORT: 3000
+      ROOT: /srv/dist
+      API_ORIGIN: http://${PUBLIC_IP:-10.8.0.28}:${BACKEND_HOST_PORT:-3077}
+      APP_NAME: admin-portal
+    ports:
+      - "${ADMIN_PORTAL_HOST_PORT:-3013}:3000"
+    restart: unless-stopped
+
+volumes:
+  zoo_pgdata:
+  iii_home:

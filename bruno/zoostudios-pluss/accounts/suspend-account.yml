@@ -1,0 +1,30 @@
+info:
+  name: suspend-account
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/suspend"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "suspendReason": "Manual review - suspected fraudulent activity"
+      }
+  auth: inherit
+
+docs: |
+  ADMIN only. MANUAL suspension only - accounts are NEVER suspended
+  automatically because of bills. Suspended accounts immediately fail
+  API-key authentication with ACCOUNT_SUSPENDED.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

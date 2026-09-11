@@ -1,0 +1,22 @@
+info:
+  name: withdraw-list
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/wallets/withdrawals?page=1&limit=20"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  Withdrawal + auto-sweep payout history (payoutKind WITHDRAWAL/AUTO_SWEEP).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

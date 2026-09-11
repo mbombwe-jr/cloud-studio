@@ -1,0 +1,31 @@
+info:
+  name: create-webhook
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/me/webhooks"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "url": "https://webhook.site/your-unique-id",
+        "events": ["COLLECTION_STATUS", "DISBURSEMENT_STATUS", "BATCH_STATUS", "SMS_STATUS", "WALLET_UPDATE"]
+      }
+  auth: inherit
+
+docs: |
+  Registers a callback endpoint. The signing secret (HMAC) is returned
+  exactly once — store it. Events: COLLECTION_STATUS, DISBURSEMENT_STATUS,
+  BATCH_STATUS, SMS_STATUS, WALLET_UPDATE.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

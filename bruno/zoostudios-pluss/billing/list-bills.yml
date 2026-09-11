@@ -1,0 +1,22 @@
+info:
+  name: list-bills
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/bills?page=1&limit=20"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  ADMIN + SERVICEMAN. Bills of one account. Optional &status=PENDING|PAID|OVERDUE|VOID.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,30 @@
+info:
+  name: set-auto-sweep
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/settlement/auto-sweep"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "enabled": true
+      }
+  auth: inherit
+
+docs: |
+  ADMIN. Toggle the daily 00:00 Africa/Dar_es_Salaam auto-sweep that
+  settles the COLLECTION wallet into the default settlement account
+  (default: enabled).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

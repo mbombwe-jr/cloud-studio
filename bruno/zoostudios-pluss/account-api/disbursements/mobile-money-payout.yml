@@ -1,0 +1,32 @@
+info:
+  name: mobile-money-payout
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/disbursements/mobile-money"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "65000",
+        "phoneNumber": "255712345678",
+        "reference": "PAY89001"
+      }
+  auth: inherit
+
+docs: |
+  Mobile money payout via ClickPesa. Debits the DISBURSEMENT wallet
+  (INSUFFICIENT_FUNDS guard applies). Copy the 20-char reference into
+  {{payoutReference}}.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

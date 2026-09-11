@@ -1,0 +1,29 @@
+info:
+  name: update-settlement
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/settlement/SETTLEMENT_ID"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "isActive": true,
+        "isDefault": true
+      }
+  auth: inherit
+
+docs: |
+  ADMIN. Activate/deactivate or change the default settlement account.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

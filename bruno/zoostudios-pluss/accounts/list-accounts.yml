@@ -1,0 +1,23 @@
+info:
+  name: list-accounts
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/admin/accounts?page=1&limit=20"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  ADMIN + SERVICEMAN. Paginated list. Optional filters:
+  &status=ACTIVE|SUSPENDED|PENDING  &search=text
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,23 @@
+info:
+  name: transactions
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/wallets/COLLECTION/transactions?page=1&limit=20"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  Own wallet ledger. Optional &from=&to= (ISO dates). Swap
+  COLLECTION for DISBURSEMENT as needed.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

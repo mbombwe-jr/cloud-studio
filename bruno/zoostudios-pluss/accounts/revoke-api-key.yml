@@ -1,0 +1,23 @@
+info:
+  name: revoke-api-key
+  type: http
+  seq: 8
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/api-keys/{{keyId}}"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  ADMIN only. Revokes an API key. {{keyId}} is the key id (not the
+  secret) from the issue response or key list.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

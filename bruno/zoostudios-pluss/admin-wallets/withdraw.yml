@@ -1,0 +1,31 @@
+info:
+  name: withdraw
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/wallets/DISBURSEMENT/withdraw"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "25000",
+        "reason": "Manual settlement to bank",
+        "reference": "SETTLE-001"
+      }
+  auth: inherit
+
+docs: |
+  ADMIN only. Debits a wallet. Fails with INSUFFICIENT_FUNDS when the
+  balance is too low.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

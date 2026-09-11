@@ -1,0 +1,23 @@
+info:
+  name: sweep-now
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/settlement/sweep-now"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  ADMIN. Sweep the whole COLLECTION wallet balance immediately (same
+  guarantees as the nightly cron; fee deducted from the swept amount).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

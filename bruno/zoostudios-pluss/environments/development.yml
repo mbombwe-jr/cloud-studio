@@ -1,0 +1,26 @@
+name: development
+variables:
+  - name: baseUrl
+    value: http://localhost:3077
+  - name: accessToken
+    value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXRzc3BkZHEwMDAwcXMxdGNnZ3hmNzYxIiwiZW1haWwiOiJhZG1pbkB6b29zdHVkaW9zLmludGVybmFsIiwibmFtZSI6IlBsYXRmb3JtIEFkbWluIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzg4ODgxNDM4LCJleHAiOjE3ODg5MTAyMzh9.9UrhGW-J9bmkqloWxyihTlmBo-DGwAEFybfHwXRJkNY
+  - name: apiKey
+    value: PASTE_API_KEY_MIN_32_CHARS
+  - name: accountId
+    value: PASTE_ACCOUNT_PUBLIC_ID
+  - name: keyId
+    value: PASTE_API_KEY_ID_TO_REVOKE
+  - name: planId
+    value: PASTE_PLAN_ID
+  - name: billId
+    value: PASTE_BILL_ID
+  - name: webhookEndpointId
+    value: PASTE_WEBHOOK_ENDPOINT_ID
+  - name: collectionReference
+    value: PASTE_20_CHAR_COLLECTION_REF
+  - name: payoutReference
+    value: PASTE_20_CHAR_PAYOUT_REF
+  - name: batchReference
+    value: PASTE_20_CHAR_BATCH_REF
+  - name: smsReference
+    value: PASTE_20_CHAR_SMS_REF

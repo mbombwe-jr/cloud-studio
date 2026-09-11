@@ -1,0 +1,30 @@
+info:
+  name: update-account
+  type: http
+  seq: 4
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "accountName": "Acme Traders Limited",
+        "contactEmail": "billing@acme.co.tz",
+        "contactPhone": "255765432100"
+      }
+  auth: inherit
+
+docs: |
+  ADMIN only. Partial update of account identity/contact fields.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

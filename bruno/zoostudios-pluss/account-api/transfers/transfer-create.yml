@@ -1,0 +1,30 @@
+info:
+  name: transfer-create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/wallets/transfers"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "10000",
+        "reference": "TRF-0001"
+      }
+  auth: inherit
+
+docs: |
+  Instant internal move COLLECTION -> DISBURSEMENT inside ONE database
+  transaction, charged at the account's custom transfer fee (default 2%).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

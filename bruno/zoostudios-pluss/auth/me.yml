@@ -1,0 +1,23 @@
+info:
+  name: me
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{baseUrl}}/auth/me"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  Profile of the currently authenticated staff user (ADMIN or
+  SERVICEMAN).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

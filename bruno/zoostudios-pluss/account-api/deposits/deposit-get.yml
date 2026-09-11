@@ -1,0 +1,22 @@
+info:
+  name: deposit-get
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{baseUrl}}/wallets/deposits/PPPPPYYYYYYYYYYYY"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  Deposit detail by 20-char reference.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,33 @@
+info:
+  name: create-account
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/accounts"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "accountName": "Acme Traders Ltd",
+        "contactEmail": "ops@acme.co.tz",
+        "contactPhone": "255712345678",
+        "billingMode": "PAY_AS_YOU_GO"
+      }
+  auth: inherit
+
+docs: |
+  ADMIN only. Step 1 — open an account on behalf of the owner.
+  billingMode: NONE | SUBSCRIPTION | PAY_AS_YOU_GO.
+  Copy the returned public id into {{accountId}}.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

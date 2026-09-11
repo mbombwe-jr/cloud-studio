@@ -1,0 +1,22 @@
+info:
+  name: delete-webhook
+  type: http
+  seq: 4
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/me/webhooks/{{webhookEndpointId}}"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  Removes a webhook endpoint. Delivery retries stop immediately.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

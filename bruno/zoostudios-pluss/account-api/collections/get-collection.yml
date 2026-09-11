@@ -1,0 +1,22 @@
+info:
+  name: get-collection
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{baseUrl}}/collections/{{collectionReference}}"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  Fetches one collection by its 20-char reference (case-insensitive).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

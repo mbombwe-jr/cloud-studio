@@ -1,0 +1,23 @@
+info:
+  name: freeze-wallet
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/wallets/DISBURSEMENT/freeze"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  ADMIN only. Freezes one wallet — debits are rejected while frozen;
+  credits still land.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,22 @@
+info:
+  name: mark-bill-paid
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/bills/{{billId}}/paid"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  ADMIN only. Marks a pending bill as paid (manual reconciliation).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

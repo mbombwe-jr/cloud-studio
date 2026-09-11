@@ -1,0 +1,35 @@
+info:
+  name: update-fees
+  type: http
+  seq: 7
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/fees"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "collectionBelowBps": 500,
+        "collectionThreshold": "3000",
+        "collectionAboveBps": 200,
+        "disbursementBelowBps": 500,
+        "disbursementThreshold": "3000",
+        "disbursementAboveBps": 200,
+        "transferBps": 200
+      }
+  auth: inherit
+
+docs: |
+  ADMIN. Customise any fee value (0..10000 bps). Applied to all new
+  transactions immediately.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

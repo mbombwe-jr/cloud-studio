@@ -1,0 +1,22 @@
+info:
+  name: get-batch
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{baseUrl}}/disbursements/batches/{{batchReference}}"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  One batch with all items and their individual statuses.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

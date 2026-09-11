@@ -1,0 +1,20 @@
+/** Test environment defaults — loaded before any module import. */
+process.env.NODE_ENV = 'test';
+process.env.MOCK_PROVIDERS = 'true';
+process.env.ZOO_DATABASE_URL = process.env.ZOO_DATABASE_URL || 'postgresql://postgres:postgres@127.0.0.1:5433/zoostudios_test?schema=public';
+process.env.JWT_SECRET = 'test-secret-key-for-zoostudios-backend-e2e-32ch';
+process.env.JWT_EXPIRES_IN = '1h';
+process.env.API_KEY_PREFIX = 'zstest';
+process.env.BCRYPT_ROUNDS = '4';
+process.env.THROTTLE_TTL = '60000';
+process.env.THROTTLE_LIMIT = '1000000';
+process.env.QUEUE_POLL_INTERVAL_MS = '60';
+process.env.QUEUE_CONCURRENCY = '10';
+process.env.QUEUE_BACKOFF_BASE_MS = '100';
+process.env.WEBHOOK_BACKOFF_BASE_MS = '100';
+process.env.STATUS_POLL_AFTER_MS = '600000';
+process.env.SMS_DEFAULT_SENDER = 'ZOOINFO';
+process.env.SMS_RATE_TZS = '20';
+process.env.CLICKPESA_PAYOUT_MIN_INTERVAL_MS = '0';
+process.env.III_ENABLED = 'false';
+process.env.TZ = 'Africa/Dar_es_Salaam';

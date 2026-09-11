@@ -1,0 +1,31 @@
+info:
+  name: deposit
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/wallets/COLLECTION/deposit"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "100000",
+        "reason": "Opening float top-up",
+        "reference": "TOPUP-001"
+      }
+  auth: inherit
+
+docs: |
+  ADMIN only. Credits a wallet (manual funding, e.g. after verifying
+  a bank transfer). amount up to 2 decimals as string.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

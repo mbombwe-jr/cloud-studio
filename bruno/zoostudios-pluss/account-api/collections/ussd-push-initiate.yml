@@ -1,0 +1,32 @@
+info:
+  name: ussd-push-initiate
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/collections/ussd-push"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "15000",
+        "phoneNumber": "255712345678",
+        "reference": "ORD12345"
+      }
+  auth: inherit
+
+docs: |
+  Initiates a real USSD push via ClickPesa to the customer handset.
+  Copy the returned 20-char reference into {{collectionReference}}.
+  On SUCCESS the wallet is credited and the callback fires.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

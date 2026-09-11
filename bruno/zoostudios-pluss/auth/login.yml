@@ -1,0 +1,27 @@
+info:
+  name: login
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/auth/login"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "admin@zoostudios.internal",
+        "password": "ChangeMe!2025"
+      }
+  auth: inherit
+
+docs: |
+  Staff login (public). Returns { accessToken, tokenType: 'Bearer',
+  expiresIn }. Copy accessToken into the environment variable
+  {{accessToken}} for all /admin/** and /auth/me requests.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

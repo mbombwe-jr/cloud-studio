@@ -1,0 +1,22 @@
+info:
+  name: deposit-refresh
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/wallets/deposits/PPPPPYYYYYYYYYYYY/refresh"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  Re-query the provider for the authoritative deposit status.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

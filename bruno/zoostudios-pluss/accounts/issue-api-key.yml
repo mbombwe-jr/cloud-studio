@@ -1,0 +1,30 @@
+info:
+  name: issue-api-key
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/api-keys"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "name": "production-integration"
+      }
+  auth: inherit
+
+docs: |
+  ADMIN only. Issues a new API key (>= 32 chars). The full key is
+  returned exactly once - copy it into {{apiKey}}. Only the SHA-256
+  hash is stored server-side.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

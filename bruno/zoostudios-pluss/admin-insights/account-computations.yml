@@ -1,0 +1,24 @@
+info:
+  name: account-computations
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/computations?preset=month"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  ADMIN + SERVICEMAN. Computational review of collections,
+  disbursements, SMS spend and fees.
+  preset=day (today) | month (current month) | custom&from=YYYY-MM-DD&to=YYYY-MM-DD
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

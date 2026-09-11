@@ -1,0 +1,23 @@
+info:
+  name: analytics-summary
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{baseUrl}}/admin/analytics/summary?from=2026-08-01&to=2026-09-02"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  ADMIN + SERVICEMAN. Aggregated iii analytics for a date range
+  (defaults to the last 30 days).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

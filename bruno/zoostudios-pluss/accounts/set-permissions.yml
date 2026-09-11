@@ -1,0 +1,46 @@
+info:
+  name: set-permissions
+  type: http
+  seq: 9
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/permissions"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "permissions": [
+          {
+            "service": "COLLECTION",
+            "granted": true,
+            "meta": { "channels": ["MOBILE_MONEY"], "payAsYouGo": true, "walletActions": true }
+          },
+          {
+            "service": "DISBURSEMENT",
+            "granted": true,
+            "meta": { "channels": ["MOBILE_MONEY", "BANK"], "payAsYouGo": true, "walletActions": true }
+          },
+          {
+            "service": "SMS",
+            "granted": true,
+            "meta": { "payAsYouGo": true }
+          }
+        ]
+      }
+  auth: inherit
+
+docs: |
+  ADMIN only. Step 2 — assign service permissions (max 3 items:
+  COLLECTION, DISBURSEMENT, SMS). meta.walletActions: true also allows
+  the account to deposit/withdraw via /wallets API.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

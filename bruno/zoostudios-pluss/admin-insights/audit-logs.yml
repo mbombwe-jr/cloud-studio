@@ -1,0 +1,23 @@
+info:
+  name: audit-logs
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{baseUrl}}/admin/audit-logs?page=1&limit=20"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  ADMIN + SERVICEMAN. Tamper-evident audit trail. Optional filters:
+  &accountId=  &action=ACCOUNT_SUSPEND  &actorType=ADMIN|API_KEY|SYSTEM  &from=&to=
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

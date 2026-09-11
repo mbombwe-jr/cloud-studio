@@ -1,0 +1,740 @@
+// =====================================================================
+// Zoostudios — Prisma schema
+// Internal cloud-services provisioning platform:
+//   collection (mobile money / bank), disbursement (mobile money / bank,
+//   batch), SMS (shared & dedicated sender names), wallets, billing,
+//   permissions, audit & tracing.
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("ZOO_DATABASE_URL")
+}
+
+// ------------------------------ Enums -------------------------------
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum ServiceKey {
+  COLLECTION
+  DISBURSEMENT
+  SMS
+}
+
+enum UserRole {
+  ADMIN
+  SERVICEMAN
+}
+
+enum WalletType {
+  COLLECTION
+  DISBURSEMENT
+}
+
+enum WalletStatus {
+  ACTIVE
+  FROZEN
+}
+
+enum WalletTxType {
+  DEPOSIT
+  WITHDRAWAL
+  COLLECTION_CREDIT
+  PAYOUT_DEBIT
+  BATCH_HOLD
+  REFUND
+  ADJUSTMENT
+  TRANSFER_OUT
+  TRANSFER_IN
+}
+
+/// Where a customer's collected funds are settled (auto-sweep & withdrawals)
+enum SettlementType {
+  MOBILE
+  BANK
+}
+
+/// Tanzanian mobile money operators supported for settlement
+enum MobileMethod {
+  AIRTEL
+  TIGO
+  VODACOM
+  HALOPESA
+}
+
+enum LedgerTxStatus {
+  SUCCESS
+  FAILED
+}
+
+enum TxStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  REVERSED
+  REFUNDED
+  EXPIRED
+}
+
+enum CollectionChannel {
+  MOBILE_MONEY
+  BANK
+}
+
+enum PayoutChannel {
+  MOBILE_MONEY
+  BANK
+}
+
+enum BatchStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  PARTIALLY_FAILED
+  FAILED
+  CANCELLED
+}
+
+enum BillType {
+  SUBSCRIPTION
+  PAY_AS_YOU_GO
+  MANUAL
+}
+
+enum BillStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum BillingMode {
+  NONE
+  SUBSCRIPTION
+  PAY_AS_YOU_GO
+}
+
+enum SmsStatus {
+  QUEUED
+  PROCESSING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+enum SenderType {
+  SHARED
+  DEDICATED
+}
+
+enum ActorType {
+  ADMIN
+  SERVICEMAN
+  API_KEY
+  SYSTEM
+}
+
+enum WebhookEvent {
+  COLLECTION_STATUS
+  DISBURSEMENT_STATUS
+  BATCH_STATUS
+  SMS_STATUS
+  WALLET_UPDATE
+  DEPOSIT_STATUS
+}
+
+enum DeliveryStatus {
+  PENDING
+  DELIVERED
+  FAILED
+  DEAD
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  DEAD
+}
+
+// ------------------------------ Staff --------------------------------
+
+model StaffUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         UserRole @default(SERVICEMAN)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("staff_users")
+}
+
+// ----------------------------- Account -------------------------------
+
+model Account {
+  id            String        @id @default(cuid())
+  /// Public identifier, e.g. ACC-7F3K9QX2
+  accountId     String        @unique
+  accountName   String
+  /// 5-char unique source prefix prepended to every service reference
+  sourceCode    String        @unique @db.VarChar(5)
+  contactEmail  String?
+  contactPhone  String?
+  status        AccountStatus @default(ACTIVE)
+  /// Whether recurring subscription bills are issued / PAYG bills auto-issued
+  billingMode   BillingMode   @default(NONE)
+  /// Auto-sweep: settle the COLLECTION wallet balance into the default
+  /// settlement account daily at 00:00 Africa/Dar_es_Salaam (default: on)
+  autoSweep     Boolean       @default(true)
+  suspendedBy   String?
+  suspendReason String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  apiKeys          ApiKey[]
+  permissions      ServicePermission[]
+  wallets          Wallet[]
+  collections      Collection[]
+  payouts          Payout[]
+  batches          DisbursementBatch[]
+  smsMessages      SmsMessage[]
+  senderNames      SenderName[]
+  bills            Bill[]
+  accountPlan      AccountPlan?
+  webhookEndpoints WebhookEndpoint[]
+  auditLogs        AuditLog[]
+  settlementAccounts SettlementAccount[]
+  feeConfig          FeeConfig?
+  deposits           Deposit[]
+  walletTransfers    WalletTransfer[]
+
+  @@map("accounts")
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  accountId  String
+  account    Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  name       String    @default("default")
+  /// First characters stored in plaintext for lookup/display, e.g. zs_live_a1b2
+  prefix     String
+  /// SHA-256 hash of the full key — the plaintext is never stored
+  keyHash    String    @unique
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([accountId])
+  @@map("api_keys")
+}
+
+model ServicePermission {
+  id         String     @id @default(cuid())
+  accountId  String
+  account    Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  service    ServiceKey
+  granted    Boolean    @default(false)
+  /// Extra per-service config:
+  ///  COLLECTION/DISBURSEMENT: { channels: ["MOBILE_MONEY","BANK"] }
+  ///  SMS: { payAsYouGo: true }
+  ///  wallet deposits/withdrawals over API require walletActions:true
+  meta       Json?
+  grantedAt  DateTime   @default(now())
+  grantedBy  String?
+
+  @@unique([accountId, service])
+  @@map("service_permissions")
+}
+
+// ------------------------------ Wallets ------------------------------
+
+model Wallet {
+  id        String       @id @default(cuid())
+  accountId String
+  account   Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  type      WalletType
+  currency  String       @default("TZS")
+  balance   Decimal      @default(0) @db.Decimal(20, 2)
+  status    WalletStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  transactions WalletTransaction[]
+  deposits     Deposit[]
+
+  @@unique([accountId, type])
+  @@map("wallets")
+}
+
+// --------------------------- Settlement ------------------------------
+
+/// Where collected funds are settled for a customer (requirement #1):
+/// either a mobile money wallet (method + phone) or a bank account
+/// (number + bank name + initials). Used by auto-sweep, withdrawals and
+/// any payout-backed settlement — never a custom/manual method.
+model SettlementAccount {
+  id            String         @id @default(cuid())
+  accountId     String
+  account       Account        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  type          SettlementType
+  /// Required for MOBILE (AIRTEL / TIGO / VODACOM / HALOPESA)
+  method        MobileMethod?
+  phoneNumber   String?
+  /// Required for BANK
+  bankName      String?
+  /// Short bank initials/code, e.g. CRDB, NMB
+  bankInitials  String?
+  accountNumber String?
+  accountName   String?
+  isDefault     Boolean        @default(true)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([accountId])
+  @@map("settlement_accounts")
+}
+
+/// Per-customer custom fees (requirement #3). Values are basis points
+/// (bps): 500 = 5%, 200 = 2%. Defaults: 5% below the tier threshold,
+/// 2% at/above it — same for collection and disbursement. The transfer
+/// fee (collection -> disbursement wallet move) defaults to 2%.
+model FeeConfig {
+  id                    String  @id @default(cuid())
+  accountId             String  @unique
+  account               Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  collectionBelowBps    Int     @default(500)
+  collectionThreshold   Decimal @default(3000) @db.Decimal(20, 2)
+  collectionAboveBps    Int     @default(200)
+  disbursementBelowBps  Int     @default(500)
+  disbursementThreshold Decimal @default(3000) @db.Decimal(20, 2)
+  disbursementAboveBps  Int     @default(200)
+  transferBps           Int     @default(200)
+  updatedAt             DateTime @updatedAt
+
+  @@map("fee_configs")
+}
+
+model WalletTransaction {
+  id            String        @id @default(cuid())
+  walletId      String
+  wallet        Wallet        @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type          WalletTxType
+  amount        Decimal       @db.Decimal(20, 2)
+  balanceBefore Decimal       @db.Decimal(20, 2)
+  balanceAfter  Decimal       @db.Decimal(20, 2)
+  currency      String        @default("TZS")
+  /// 20-char service reference (collection/payout/batch) or admin reference
+  reference     String?
+  description   String
+  status        LedgerTxStatus @default(SUCCESS)
+  metadata      Json?
+  traceId       String?
+  createdBy     String?
+  createdAt     DateTime      @default(now())
+
+  @@index([walletId, createdAt])
+  @@index([reference])
+  @@map("wallet_transactions")
+}
+
+// ---------------------------- Collection -----------------------------
+
+model Collection {
+  id                String            @id @default(cuid())
+  accountId         String
+  account           Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  /// Internal 20-char reference: 5-char account source code + 15-char client reference
+  reference         String            @unique @db.VarChar(20)
+  /// The raw client-supplied reference (before padding), when provided
+  clientReference   String?
+  channel           CollectionChannel @default(MOBILE_MONEY)
+  provider          String            @default("CLICKPESA")
+  amount            Decimal           @db.Decimal(20, 2)
+  currency          String            @default("TZS")
+  phoneNumber       String
+  status            TxStatus          @default(PENDING)
+  providerTxId      String?
+  providerStatus    String?
+  paymentReference  String?
+  collectedAmount   Decimal?
+  collectedCurrency String?
+  /// Platform fee charged to the merchant on successful collection
+  feeAmount         Decimal?          @db.Decimal(20, 2)
+  feeBps            Int?
+  message           String?
+  failureReason     String?
+  customer          Json?
+  walletCreditedAt  DateTime?
+  rawRequest        Json?
+  rawResponse       Json?
+  traceId           String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([accountId, createdAt])
+  @@index([status])
+  @@map("collections")
+}
+
+// ------------------------------ Deposit ------------------------------
+
+/// Wallet deposit processed exactly like a collection (requirement #2):
+/// USSD push is initiated, ClickPesa authorises the amount, and on success
+/// the value is credited to the DISBURSEMENT wallet (never the collection
+/// wallet). No platform fee is charged on deposits.
+model Deposit {
+  id                String            @id @default(cuid())
+  accountId         String
+  account           Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  /// DISBURSEMENT wallet that receives the authorised amount
+  walletId          String
+  wallet            Wallet            @relation(fields: [walletId], references: [id])
+  reference         String            @unique @db.VarChar(20)
+  clientReference   String?
+  channel           CollectionChannel @default(MOBILE_MONEY)
+  provider          String            @default("CLICKPESA")
+  amount            Decimal           @db.Decimal(20, 2)
+  currency          String            @default("TZS")
+  phoneNumber       String
+  status            TxStatus          @default(PENDING)
+  providerTxId      String?
+  providerStatus    String?
+  paymentReference  String?
+  collectedAmount   Decimal?
+  collectedCurrency String?
+  message           String?
+  failureReason     String?
+  customer          Json?
+  walletCreditedAt  DateTime?
+  rawRequest        Json?
+  rawResponse       Json?
+  traceId           String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([accountId, createdAt])
+  @@index([status])
+  @@map("deposits")
+}
+
+/// Internal instant move of funds from the COLLECTION wallet to the
+/// DISBURSEMENT wallet (requirement #6), charged at the account's custom
+/// transfer fee (default 2%).
+model WalletTransfer {
+  id              String   @id @default(cuid())
+  accountId       String
+  account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  reference       String   @unique @db.VarChar(20)
+  clientReference String?
+  amount          Decimal  @db.Decimal(20, 2)
+  feeAmount       Decimal  @db.Decimal(20, 2)
+  feeBps          Int
+  currency        String   @default("TZS")
+  status          TxStatus @default(SUCCESS)
+  failureReason   String?
+  traceId         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([accountId, createdAt])
+  @@map("wallet_transfers")
+}
+
+// --------------------------- Disbursement ----------------------------
+
+model DisbursementBatch {
+  id           String      @id @default(cuid())
+  accountId    String
+  account      Account     @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  name         String
+  reference    String      @unique @db.VarChar(20)
+  status       BatchStatus @default(PENDING)
+  totalCount   Int
+  totalAmount  Decimal     @db.Decimal(20, 2)
+  successCount Int         @default(0)
+  failedCount  Int         @default(0)
+  metadata     Json?
+  traceId      String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  payouts Payout[]
+
+  @@index([accountId, createdAt])
+  @@map("disbursement_batches")
+}
+
+model Payout {
+  id             String        @id @default(cuid())
+  accountId      String
+  account        Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  batchId        String?
+  batch          DisbursementBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  channel        PayoutChannel
+  /// Internal 20-char reference
+  reference      String        @unique @db.VarChar(20)
+  clientReference String?
+  /// Which wallet funded this payout — refunds return to the same wallet
+  /// (CUSTOMER payouts debit DISBURSEMENT; sweeps/withdrawals debit COLLECTION)
+  sourceWallet   WalletType    @default(DISBURSEMENT)
+  /// CUSTOMER | WITHDRAWAL | AUTO_SWEEP — settlement lifecycle tracking
+  payoutKind     String        @default("CUSTOMER")
+  amount         Decimal       @db.Decimal(20, 2)
+  currency       String        @default("TZS")
+  /// Mobile money
+  phoneNumber    String?
+  /// Bank
+  accountNumber  String?
+  accountName    String?
+  bic            String?
+  transferType   String?
+  status         TxStatus      @default(PENDING)
+  providerTxId   String?
+  providerStatus String?
+  fee            Decimal?
+  /// Platform fee charged to the merchant (basis points kept for display)
+  feeAmount      Decimal?          @db.Decimal(20, 2)
+  feeBps         Int?
+  message        String?
+  failureReason  String?
+  walletDebitedAt DateTime?
+  refundedAt     DateTime?
+  rawRequest     Json?
+  rawResponse    Json?
+  traceId        String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([accountId, createdAt])
+  @@index([batchId])
+  @@index([status])
+  @@map("payouts")
+}
+
+// -------------------------------- SMS --------------------------------
+
+model SenderName {
+  id         String     @id @default(cuid())
+  /// null = platform-wide shared sender name
+  accountId  String?
+  account    Account?   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  name       String
+  type       SenderType @default(DEDICATED)
+  isApproved Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+
+  @@unique([accountId, name])
+  @@map("sender_names")
+}
+
+model SmsMessage {
+  id                String    @id @default(cuid())
+  accountId         String
+  account           Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  reference         String    @unique @db.VarChar(20)
+  senderName        String
+  message           String
+  encoding          Int       @default(0)
+  /// [{ recipientId, destAddr, status, messageId, error }]
+  recipients        Json
+  recipientCount    Int
+  status            SmsStatus @default(QUEUED)
+  providerRequestId String?
+  cost              Decimal?  @db.Decimal(20, 4)
+  failureReason     String?
+  scheduledAt       DateTime?
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  rawRequest        Json?
+  rawResponse       Json?
+  traceId           String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([accountId, createdAt])
+  @@map("sms_messages")
+}
+
+// ------------------------------ Billing ------------------------------
+
+model Plan {
+  id              String     @id @default(cuid())
+  name            String     @unique
+  description     String?
+  services        ServiceKey[]
+  recurringAmount Decimal    @db.Decimal(20, 2)
+  periodDays      Int        @default(30)
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+
+  accountPlans AccountPlan[]
+
+  @@map("plans")
+}
+
+model AccountPlan {
+  id              String     @id @default(cuid())
+  accountId       String     @unique
+  account         Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  planId          String
+  plan            Plan       @relation(fields: [planId], references: [id])
+  recurringAmount Decimal    @db.Decimal(20, 2)
+  periodDays      Int        @default(30)
+  startedAt       DateTime   @default(now())
+  nextBillingDate DateTime?
+  status          BillStatus @default(PENDING)
+
+  @@map("account_plans")
+}
+
+model Bill {
+  id          String    @id @default(cuid())
+  accountId   String
+  account     Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  type        BillType
+  title       String
+  description String?
+  amount      Decimal   @db.Decimal(20, 2)
+  currency    String    @default("TZS")
+  isRecurring Boolean   @default(false)
+  periodDays  Int?
+  dueDate     DateTime?
+  status      BillStatus @default(PENDING)
+  issuedBy    String?
+  paidAt      DateTime?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([accountId, status])
+  @@map("bills")
+}
+
+// ------------------------------ Webhooks -----------------------------
+
+model WebhookEndpoint {
+  id        String        @id @default(cuid())
+  accountId String
+  account   Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  url       String
+  /// HMAC-SHA256 secret used to sign outgoing webhook payloads
+  secret    String
+  events    WebhookEvent[]
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  deliveries WebhookDelivery[]
+
+  @@index([accountId])
+  @@map("webhook_endpoints")
+}
+
+model WebhookDelivery {
+  id             String         @id @default(cuid())
+  endpointId     String
+  endpoint       WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  event          WebhookEvent
+  /// Service reference the event relates to
+  reference      String
+  payload        Json
+  status         DeliveryStatus @default(PENDING)
+  attempts       Int            @default(0)
+  lastAttemptAt  DateTime?
+  nextAttemptAt  DateTime?
+  responseStatus Int?
+  lastError      String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@map("webhook_deliveries")
+}
+
+// --------------------- Audit / Trace / Analytics ---------------------
+
+model AuditLog {
+  id        String    @id @default(cuid())
+  actorType ActorType
+  actorId   String?
+  actorName String?
+  accountId String?
+  account   Account?  @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String?
+  entityId  String?
+  changes   Json?
+  ip        String?
+  userAgent String?
+  traceId   String?
+  createdAt DateTime  @default(now())
+
+  @@index([accountId, createdAt])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+model TraceSpan {
+  id           String   @id @default(cuid())
+  traceId      String
+  spanId       String
+  parentSpanId String?
+  operation    String
+  component    String
+  status       String   @default("OK")
+  attributes   Json?
+  /// Ordered snapshots (provider request/response etc.) — nothing is dropped
+  events       Json?
+  durationMs   Int?
+  createdAt    DateTime @default(now())
+
+  @@index([traceId])
+  @@index([component, createdAt])
+  @@map("trace_spans")
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  name       String
+  dimensions Json?
+  value      Decimal? @db.Decimal(20, 4)
+  accountId  String?
+  traceId    String?
+  createdAt  DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@map("analytics_events")
+}
+
+// -------------------------------- Jobs -------------------------------
+
+model Job {
+  id          String    @id @default(cuid())
+  queue       String
+  payload     Json
+  status      JobStatus @default(PENDING)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  runAt       DateTime  @default(now())
+  lockedAt    DateTime?
+  lockedBy    String?
+  lastError   String?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, runAt])
+  @@map("jobs")
+}

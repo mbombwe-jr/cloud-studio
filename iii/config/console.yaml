@@ -1,0 +1,49 @@
+id: console
+name: Console
+description: Console server and UI settings — live HTTP port binding, Traces V2 saved views, and per-worker injectable-UI toggles.
+metadata:
+  ui_form: console
+value:
+  http_port: 3113
+  injectableUi:
+    disabledWorkers: []
+  traces:
+    activeViewId: null
+    followTurns: true
+    spanFilters:
+      hiddenGroups:
+      - harness::send
+      hiddenWorkers:
+      - context-manager
+      - session-manager
+    views:
+    - filters: {}
+      groupBy: iii.session.id
+      hiddenFunctions: []
+      id: view-sessions
+      label:
+        attribute: iii.tag.message
+        mode: attribute
+      name: sessions
+  workspace:
+    activatedAt: 1788879407398
+    activatedBy: browser
+    activeTabId: tab-2b9e3c84-6fc2-476e-bec8-7f61d86f919c
+    tabs:
+    - columns: 2
+      id: tab-home
+      screens:
+      - chat
+      - traces
+    - columns: 1
+      id: tab-c5816cc6-aab4-4e74-8033-c9bb9635cf09
+      screens:
+      - traces
+    - columns: 1
+      id: tab-2b9e3c84-6fc2-476e-bec8-7f61d86f919c
+      screens:
+      - workers
+    - columns: 1
+      id: tab-6946a18e-f998-495a-bbc9-22240696e791
+      screens:
+      - ext:triggers

@@ -1,0 +1,36 @@
+info:
+  name: bank-payout
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/disbursements/bank"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "195000",
+        "accountNumber": "0151234567800",
+        "accountName": "Acme Traders Limited",
+        "bic": "ACTZTZTZ",
+        "transferType": "ACH",
+        "reference": "BANKPAY01"
+      }
+  auth: inherit
+
+docs: |
+  Bank payout via ClickPesa. The backend automatically appends
+  "currency": "TZS" to the provider payload (per spec). transferType:
+  ACH (default) | RTGS. bic must be a valid SWIFT/BIC from the
+  provider's bank list.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

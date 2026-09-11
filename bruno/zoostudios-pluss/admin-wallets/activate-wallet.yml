@@ -1,0 +1,22 @@
+info:
+  name: activate-wallet
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/wallets/DISBURSEMENT/activate"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  ADMIN only. Unfreezes a wallet.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

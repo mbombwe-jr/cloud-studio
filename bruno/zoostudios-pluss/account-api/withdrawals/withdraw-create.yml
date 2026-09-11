@@ -1,0 +1,31 @@
+info:
+  name: withdraw-create
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/wallets/withdrawals"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "20000",
+        "reference": "SETTLE-01"
+      }
+  auth: inherit
+
+docs: |
+  Manually settle a specific amount from the COLLECTION wallet to the
+  customer's settlement account: bank settlement -> bank payout, mobile
+  settlement -> mobile money payout. Failed payouts refund fully.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

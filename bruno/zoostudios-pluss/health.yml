@@ -1,0 +1,20 @@
+info:
+  name: health
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/health"
+  auth: inherit
+
+docs: |
+  Public liveness probe. Reports database status and whether the iii
+  engine is attached or running in local-drivers fallback mode.
+  No authentication required.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

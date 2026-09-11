@@ -1,0 +1,22 @@
+info:
+  name: list-batches
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: "{{baseUrl}}/disbursements/batches?page=1&limit=20"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  auth: inherit
+
+docs: |
+  Batch payouts with per-item progress.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

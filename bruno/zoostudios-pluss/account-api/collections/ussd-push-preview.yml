@@ -1,0 +1,34 @@
+info:
+  name: ussd-push-preview
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/collections/ussd-push/preview"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "amount": "15000",
+        "phoneNumber": "255712345678",
+        "reference": "ORD12345",
+        "fetchSenderDetails": false
+      }
+  auth: inherit
+
+docs: |
+  Dry-run of a USSD push collection: validates the request, returns
+  fees and the computed 20-char internal reference
+  (5-char account prefix + 15-char client reference, space-padded).
+  Does not debit anything.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

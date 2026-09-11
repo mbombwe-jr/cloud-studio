@@ -1,0 +1,36 @@
+info:
+  name: create-bill
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/accounts/{{accountId}}/bills"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "type": "MANUAL",
+        "title": "September onboarding fee",
+        "description": "One-off fee, assigned manually by admin",
+        "amount": "50000",
+        "isRecurring": false,
+        "dueDate": "2026-09-30"
+      }
+  auth: inherit
+
+docs: |
+  ADMIN only. MANUAL bill assignment. type: SUBSCRIPTION |
+  PAY_AS_YOU_GO | MANUAL. Accounts can operate without any bills and
+  are never auto-suspended for unpaid bills. Copy bill id into
+  {{billId}}.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

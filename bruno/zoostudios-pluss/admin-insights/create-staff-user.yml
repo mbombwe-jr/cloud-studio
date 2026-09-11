@@ -1,0 +1,33 @@
+info:
+  name: create-staff-user
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/users"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Jane Serviceman",
+        "email": "jane@zoostudios.internal",
+        "password": "StrongPass2026",
+        "role": "SERVICEMAN"
+      }
+  auth: inherit
+
+docs: |
+  ADMIN only. Creates staff. role: ADMIN (read-write) or SERVICEMAN
+  (strictly read-only — 403 on every write endpoint). Password needs
+  upper, lower and digits, min 10 chars.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

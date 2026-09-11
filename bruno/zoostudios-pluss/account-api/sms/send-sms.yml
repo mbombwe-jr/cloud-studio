@@ -1,0 +1,33 @@
+info:
+  name: send-sms
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/sms/send"
+  headers:
+    - name: X-API-Key
+      value: "{{apiKey}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "message": "Dear customer, your payment of TZS 15,000 has been received. Thank you!",
+        "recipients": ["255712345678", "0655123456"]
+      }
+  auth: inherit
+
+docs: |
+  Sends via Beem Africa (mocked when MOCK_PROVIDERS=true). Omit
+  senderName to use the account default / shared sender (ZOOINFO).
+  Cost = SMS_RATE_TZS x segments (GSM7 160 / Unicode 70 chars) x
+  recipients, debited from the DISBURSEMENT wallet. Max 250
+  recipients per request. Optional scheduleAt (ISO 8601).
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,33 @@
+info:
+  name: create-plan
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/admin/plans"
+  headers:
+    - name: Authorization
+      value: "Bearer {{accessToken}}"
+      enabled: true
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Growth TZ",
+        "description": "Monthly plan for growing merchants",
+        "services": ["COLLECTION", "DISBURSEMENT", "SMS"],
+        "recurringAmount": "150000",
+        "periodDays": 30
+      }
+  auth: inherit
+
+docs: |
+  ADMIN only. Creates a subscription plan. Copy the plan id into
+  {{planId}}. periodDays 1-365, default 30 when omitted.
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
