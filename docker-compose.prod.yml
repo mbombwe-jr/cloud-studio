@@ -1,0 +1,95 @@
+name: zoostudios
+
+services:
+  # postgres:
+  #   image: postgres:18
+  #   container_name: zoo-compose-postgres
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: zoostudios
+  #   ports:
+  #     - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
+  #   volumes:
+  #     # mounted one level above PGDATA so postgres:18 can create its data/ subdir
+  #     - zoo_pgdata:/var/lib/postgresql
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", "pg_isready -U postgres -d zoostudios" ]
+  #     interval: 5s
+  #     timeout: 3s
+  #     retries: 30
+  #   restart: unless-stopped
+
+  iii:
+    image: debian:stable-slim
+    container_name: zoo-compose-iii
+    profiles: [ "standalone-iii" ]
+    working_dir: /engine
+    entrypoint: [ "/usr/local/bin/iii" ]
+    environment:
+      HOME: /root
+    volumes:
+      - ./iii:/engine
+      - ${III_BIN_DIR:-/home/mbombwe/.local/bin}:/root/.local/bin:ro
+      - iii_home:/root/.iii
+    ports:
+      - "${III_HOST_PORT:-49135}:49134"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zoo-compose-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - .env.production
+    ports:
+      - "${BACKEND_HOST_PORT:-3077}:3000"
+    restart: unless-stopped
+
+  user-portal:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.portal
+      args:
+        PORTAL_DIR: user-portal
+        VITE_API_BASE: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
+    container_name: zoo-compose-user-portal
+    depends_on:
+      - backend
+    environment:
+      PORT: 3000
+      ROOT: /srv/dist
+      API_ORIGIN: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
+      APP_NAME: user-portal
+    ports:
+      - "${USER_PORTAL_HOST_PORT:-3012}:3000"
+    restart: unless-stopped
+
+  admin-portal:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.portal
+      args:
+        PORTAL_DIR: admin-portal
+        VITE_API_BASE: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
+    container_name: zoo-compose-admin-portal
+    depends_on:
+      - backend
+    environment:
+      PORT: 3000
+      ROOT: /srv/dist
+      API_ORIGIN: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
+      APP_NAME: admin-portal
+    ports:
+      - "${ADMIN_PORTAL_HOST_PORT:-3013}:3000"
+    restart: unless-stopped
+
+volumes:
+  # zoo_pgdata:
+  iii_home:
