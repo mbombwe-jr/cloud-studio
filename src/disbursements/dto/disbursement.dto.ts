@@ -1,4 +1,4 @@
-import { IsArray, IsEnum, IsIn, IsNumberString, IsObject, IsOptional, IsString, Matches, MaxLength, MinLength, ValidateNested, ArrayMaxSize, ArrayMinSize } from 'class-validator';
+import { IsArray, IsEnum, IsIn, IsNumberString, IsObject, IsOptional, IsString, Matches, MaxLength, MinLength, ValidateNested, ArrayMaxSize, ArrayMinSize, IsInt, Max, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PayoutChannel } from '@prisma/client';
 import { Type } from 'class-transformer';
@@ -113,4 +113,27 @@ export class MnoPayoutPreviewDto {
   @ApiProperty({ example: '0751234567' })
   @IsString()
   phoneNumber!: string;
+}
+
+export class CreatePayoutLinkDto {
+  @Matches(AMOUNT_PATTERN, { message: AMOUNT_MESSAGE })
+  amount!: string;
+
+  /** Link lifetime in minutes. Defaults to 15 and cannot exceed 24 hours. */
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(1440)
+  expiresInMinutes?: number;
+}
+
+export class PayoutLinkDetailsDto {
+  @IsString()
+  @Matches(/^255[67]\d{8}$/, { message: 'phoneNumber must be a Tanzanian mobile number' })
+  phoneNumber!: string;
+
+  @IsString()
+  @MinLength(2)
+  @MaxLength(40)
+  payoutMethod!: string;
 }

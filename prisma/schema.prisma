@@ -207,6 +207,7 @@ model Account {
   wallets          Wallet[]
   collections      Collection[]
   payouts          Payout[]
+  payoutLinks      PayoutLink[]
   batches          DisbursementBatch[]
   smsMessages      SmsMessage[]
   senderNames      SenderName[]
@@ -521,6 +522,28 @@ model Payout {
   @@index([batchId])
   @@index([status])
   @@map("payouts")
+}
+
+model PayoutLink {
+  id             String    @id @default(cuid())
+  accountId      String
+  account        Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  tokenHash      String    @unique
+  amount         Decimal   @db.Decimal(20, 2)
+  currency       String    @default("TZS")
+  expiresAt      DateTime
+  redeemedAt     DateTime?
+  recipientPhone String?
+  payoutMethod   String?
+  beneficiaryName String?
+  payoutId       String?   @unique
+  payout         Payout?   @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([accountId, createdAt])
+  @@index([expiresAt])
+  @@map("payout_links")
 }
 
 // -------------------------------- SMS --------------------------------

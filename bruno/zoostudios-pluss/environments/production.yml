@@ -1,9 +1,9 @@
-name: development
+name: production
 variables:
   - name: baseUrl
-    value: http://localhost:3077
+    value: https://cloud.thirdparties.airpass.co.tz
   - name: accessToken
-    value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXRzc3BkZHEwMDAwcXMxdGNnZ3hmNzYxIiwiZW1haWwiOiJhZG1pbkB6b29zdHVkaW9zLmludGVybmFsIiwibmFtZSI6IlBsYXRmb3JtIEFkbWluIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzg4ODgxNDM4LCJleHAiOjE3ODg5MTAyMzh9.9UrhGW-J9bmkqloWxyihTlmBo-DGwAEFybfHwXRJkNY
+    value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXR3eHFhdzgwMDAwczQxaGcyM25oczZkIiwiZW1haWwiOiJkaXJlY3RvckB6b29mYW0uY28udHoiLCJuYW1lIjoiZGlyZWN0b3IiLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODk0NTg5MzYsImV4cCI6MTc4OTQ4NzczNn0.obqQByfs5E_ZWJ3bpMbn5OnVjmBaHlSvTBI49s4mq6U
   - name: apiKey
     value: PASTE_API_KEY_MIN_32_CHARS
   - name: accountId
@@ -25,6 +25,6 @@ variables:
   - name: smsReference
     value: PASTE_20_CHAR_SMS_REF
   - name: adminEmail
-    value: admin@zoostudios.internal
+    value: director@zoofam.co.tz
   - name: adminPassword
-    value: ChangeMe!2025
+    value: dstech876543211

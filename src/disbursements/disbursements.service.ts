@@ -14,6 +14,7 @@ import { IiiLoggerService } from '../iii/logger.service';
 import { IiiQueueService } from '../iii/queue.service';
 import { IiiTracingService } from '../iii/tracing.service';
 import { normalizePhoneNumber, detectMobileOperator } from '../common/utils/phone.util';
+import * as crypto from 'crypto';
 
 /**
  * Money disbursement (mobile money + bank) via ClickPesa, single & batch.
@@ -40,6 +41,79 @@ export class DisbursementsService {
   ) {}
 
   // ------------------------------- Single -------------------------------
+
+  async createPayoutLink(accountId: string, dto: { amount: string; expiresInMinutes?: number }, traceId?: string) {
+    const account = await this.prisma.account.findUnique({ where: { id: accountId }, select: { id: true } });
+    if (!account) throw new NotFoundException({ code: ErrorCodes.NOT_FOUND, message: 'Account not found' });
+    const amount = new Prisma.Decimal(dto.amount);
+    if (amount.lessThanOrEqualTo(0)) throw new BadRequestException({ code: ErrorCodes.VALIDATION_FAILED, message: 'Amount must be greater than zero' });
+    const minutes = dto.expiresInMinutes ?? 15;
+    const token = crypto.randomBytes(32).toString('base64url');
+    const link = await this.prisma.payoutLink.create({
+      data: {
+        accountId,
+        tokenHash: this.hashPayoutLinkToken(token),
+        amount,
+        expiresAt: new Date(Date.now() + minutes * 60_000),
+      },
+    });
+    const baseUrl = this.config.get<string>('publicBaseUrl')!.replace(/\/$/, '');
+    return { id: link.id, amount: amount.toFixed(2), currency: link.currency, expiresAt: link.expiresAt, url: `${baseUrl}/payout/${token}` };
+  }
+
+  private hashPayoutLinkToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
+  private async findActivePayoutLink(token: string) {
+    const link = await this.prisma.payoutLink.findUnique({ where: { tokenHash: this.hashPayoutLinkToken(token) } });
+    if (!link || link.redeemedAt || link.expiresAt <= new Date()) {
+      throw new NotFoundException({ code: ErrorCodes.NOT_FOUND, message: 'This payout link is invalid, expired, or already used' });
+    }
+    return link;
+  }
+
+  async getPayoutLink(token: string) {
+    const link = await this.findActivePayoutLink(token);
+    return { amount: link.amount.toFixed(2), currency: link.currency, expiresAt: link.expiresAt, status: 'AVAILABLE' };
+  }
+
+  async resolvePayoutLinkRecipient(token: string, dto: { phoneNumber: string; payoutMethod: string }) {
+    const link = await this.findActivePayoutLink(token);
+    const phone = normalizePhoneNumber(dto.phoneNumber ?? '');
+    if (!phone) throw new BadRequestException({ code: ErrorCodes.VALIDATION_FAILED, message: 'A valid Tanzanian phone number is required' });
+    const preview = await this.provider.previewMnoPayout?.({ amount: Number(link.amount), currency: 'TZS', orderReference: 'LINK-PREVIEW', phoneNumber: phone });
+    const sender = preview?.data?.sender;
+    return {
+      amount: link.amount.toFixed(2), currency: link.currency, phoneNumber: phone,
+      payoutMethod: dto.payoutMethod.trim(), beneficiaryName: sender?.accountName ?? null,
+      operator: sender?.accountProvider ?? detectMobileOperator(phone),
+      confirmed: false,
+    };
+  }
+
+  async confirmPayoutLink(token: string, dto: { phoneNumber: string; payoutMethod: string }, traceId?: string) {
+    const resolved = await this.resolvePayoutLinkRecipient(token, dto);
+    const tokenHash = this.hashPayoutLinkToken(token);
+    // Lock and consume before creating the payout: concurrent confirmations can never both win.
+    const link = await this.prisma.$transaction(async (tx) => {
+      const locked = await tx.$queryRaw<Array<{ id: string; redeemedAt: Date | null; expiresAt: Date }>>`
+        SELECT "id", "redeemedAt", "expiresAt" FROM "payout_links" WHERE "tokenHash" = ${tokenHash} FOR UPDATE
+      `;
+      const row = locked[0];
+      if (!row || row.redeemedAt) throw new ConflictException({ code: ErrorCodes.CONFLICT, message: 'This payout link has already been used' });
+      if (row.expiresAt <= new Date()) throw new NotFoundException({ code: ErrorCodes.NOT_FOUND, message: 'This payout link has expired' });
+      return tx.payoutLink.update({ where: { id: row.id }, data: { redeemedAt: new Date(), recipientPhone: resolved.phoneNumber, payoutMethod: resolved.payoutMethod, beneficiaryName: resolved.beneficiaryName } });
+    });
+    try {
+      const payout = await this.createPayout(link.accountId, PayoutChannel.MOBILE_MONEY, { amount: link.amount.toFixed(2), phoneNumber: resolved.phoneNumber, reference: undefined }, traceId);
+      await this.prisma.payoutLink.update({ where: { id: link.id }, data: { payoutId: payout.id } });
+      return { ...payout, linkRedeemed: true, beneficiaryName: resolved.beneficiaryName };
+    } catch (error) {
+      // The link remains consumed even if the payout fails, preserving one-time semantics.
+      throw error;
+    }
+  }
 
   /**
    * Mobile money payout preview (requirement #7) — mirrors the collection

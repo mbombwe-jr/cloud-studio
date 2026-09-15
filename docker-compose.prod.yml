@@ -23,7 +23,7 @@ services:
   iii:
     image: debian:stable-slim
     container_name: zoo-compose-iii
-    profiles: [ "standalone-iii" ]
+    # profiles: [ "standalone-iii" ]
     working_dir: /engine
     entrypoint: [ "/usr/local/bin/iii" ]
     environment:

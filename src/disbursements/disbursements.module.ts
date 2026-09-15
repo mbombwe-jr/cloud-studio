@@ -2,13 +2,14 @@ import { Module, OnModuleInit } from '@nestjs/common';
 import { WalletsModule } from '../wallets/wallets.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
 import { DisbursementsController } from './disbursements.controller';
+import { PayoutLinksController } from './payout-links.controller';
 import { DisbursementsService } from './disbursements.service';
 import { IiiCronService } from '../iii/cron.service';
 import { IiiQueueService } from '../iii/queue.service';
 
 @Module({
   imports: [WalletsModule, WebhooksModule],
-  controllers: [DisbursementsController],
+  controllers: [DisbursementsController, PayoutLinksController],
   providers: [DisbursementsService],
   exports: [DisbursementsService],
 })

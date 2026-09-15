@@ -3,7 +3,7 @@ import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { ServiceKey } from '@prisma/client';
 import { Request } from 'express';
 import { DisbursementsService } from './disbursements.service';
-import { BankPayoutDto, CreateBatchDto, MobileMoneyPayoutDto, MnoPayoutPreviewDto } from './dto/disbursement.dto';
+import { BankPayoutDto, CreateBatchDto, MobileMoneyPayoutDto, MnoPayoutPreviewDto, CreatePayoutLinkDto } from './dto/disbursement.dto';
 import { ApiKeyGuard } from '../common/guards/api-key.guard';
 import { ServicePermissionGuard } from '../common/guards/service-permission.guard';
 import { RequireService } from '../common/decorators/auth.decorators';
@@ -33,6 +33,12 @@ export class DisbursementsController {
   @Post('bank')
   bank(@CurrentAccount() account: RequestAccount, @Body() dto: BankPayoutDto, @Req() req: Request & { traceId?: string }) {
     return this.disbursements.createPayout(account.id, 'BANK', dto, req.traceId);
+  }
+
+  @RequireService(ServiceKey.DISBURSEMENT)
+  @Post('links')
+  createLink(@CurrentAccount() account: RequestAccount, @Body() dto: CreatePayoutLinkDto, @Req() req: Request & { traceId?: string }) {
+    return this.disbursements.createPayoutLink(account.id, dto, req.traceId);
   }
 
   @RequireService(ServiceKey.DISBURSEMENT)
