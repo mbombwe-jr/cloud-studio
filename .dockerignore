@@ -7,7 +7,7 @@ bruno
 logs
 *.log
 test
-/lib/
+/lib/x86_64
 docs
 scripts/postgres.log
 tsconfig.tsbuildinfo
