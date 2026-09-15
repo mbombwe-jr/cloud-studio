@@ -25,12 +25,12 @@ services:
     container_name: zoo-compose-iii
     # profiles: [ "standalone-iii" ]
     working_dir: /engine
-    entrypoint: [ "/usr/local/bin/iii" ]
+    entrypoint: [ "/root/.local/bin/iii" ]
     environment:
       HOME: /root
     volumes:
       - ./iii:/engine
-      - ${III_BIN_DIR:-/home/mbombwe/.local/bin}:/root/.local/bin:ro
+      - ${III_BIN_DIR:-/home/ubuntu/.local/bin}:/root/.local/bin:ro
       - iii_home:/root/.iii
     ports:
       - "${III_HOST_PORT:-49135}:49134"
@@ -51,43 +51,43 @@ services:
     ports:
       - "${BACKEND_HOST_PORT:-3115}:3000"
     restart: unless-stopped
-  # user-portal:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile.portal
-  #     args:
-  #       PORTAL_DIR: user-portal
-  #       VITE_API_BASE: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
-  #   container_name: zoo-compose-user-portal
-  #   depends_on:
-  #     - backend
-  #   environment:
-  #     PORT: 3000
-  #     ROOT: /srv/dist
-  #     API_ORIGIN: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
-  #     APP_NAME: user-portal
-  #   ports:
-  #     - "${USER_PORTAL_HOST_PORT:-3012}:3000"
-  #   restart: unless-stopped
+  user-portal:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.portal
+      args:
+        PORTAL_DIR: user-portal
+        VITE_API_BASE: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
+    container_name: zoo-compose-user-portal
+    depends_on:
+      - backend
+    environment:
+      PORT: 3000
+      ROOT: /srv/dist
+      API_ORIGIN: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
+      APP_NAME: user-portal
+    ports:
+      - "${USER_PORTAL_HOST_PORT:-3012}:3000"
+    restart: unless-stopped
 
-  # admin-portal:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile.portal
-  #     args:
-  #       PORTAL_DIR: admin-portal
-  #       VITE_API_BASE: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
-  #   container_name: zoo-compose-admin-portal
-  #   depends_on:
-  #     - backend
-  #   environment:
-  #     PORT: 3000
-  #     ROOT: /srv/dist
-  #     API_ORIGIN: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
-  #     APP_NAME: admin-portal
-  #   ports:
-  #     - "${ADMIN_PORTAL_HOST_PORT:-3013}:3000"
-  #   restart: unless-stopped
+  admin-portal:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.portal
+      args:
+        PORTAL_DIR: admin-portal
+        VITE_API_BASE: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
+    container_name: zoo-compose-admin-portal
+    depends_on:
+      - backend
+    environment:
+      PORT: 3000
+      ROOT: /srv/dist
+      API_ORIGIN: http://${PUBLIC_IP:-localhost}:${BACKEND_HOST_PORT:-3077}
+      APP_NAME: admin-portal
+    ports:
+      - "${ADMIN_PORTAL_HOST_PORT:-3013}:3000"
+    restart: unless-stopped
 
 volumes:
   # zoo_pgdata:
