@@ -6,7 +6,5 @@ coverage/
 .env
 *.log
 npm-install.log
-.frontend/
-frontend/
 lib
 lib/

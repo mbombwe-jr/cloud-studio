@@ -1,0 +1,31 @@
+# Zoostudios static portal (user / admin) — hardened server.mjs + dist built in-image
+# Compose build context: ./frontend/bundle
+#   build:
+#     context: ./frontend/bundle
+#     dockerfile: Dockerfile.portal
+#     args:
+#       PORTAL_DIR: user-portal
+#       VITE_API_BASE: http://10.8.0.28:3076
+FROM node:22-alpine AS build
+RUN npm config set registry https://registry.npmmirror.com && npm i -g pnpm@9.15.9
+WORKDIR /src
+ARG PORTAL_DIR
+ARG VITE_API_BASE
+COPY ${PORTAL_DIR}/package.json ${PORTAL_DIR}/pnpm-lock.yaml ./
+RUN pnpm config set registry https://registry.npmmirror.com && pnpm install --no-frozen-lockfile
+COPY ${PORTAL_DIR}/index.html ./
+COPY ${PORTAL_DIR}/public ./public
+COPY ${PORTAL_DIR}/src ./src
+COPY ${PORTAL_DIR}/vite.config.ts ./
+COPY ${PORTAL_DIR}/tsconfig.json ./
+COPY ${PORTAL_DIR}/tailwind.config.js ./
+COPY ${PORTAL_DIR}/postcss.config.js ./
+RUN VITE_API_BASE="${VITE_API_BASE}" ./node_modules/.bin/vite build
+
+FROM node:22-alpine
+WORKDIR /srv
+ENV NODE_ENV=production
+COPY --from=build /src/dist ./dist
+COPY shared/server.mjs ./server.mjs
+EXPOSE 3000
+CMD ["node", "server.mjs"]
