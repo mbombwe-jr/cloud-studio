@@ -2,15 +2,12 @@ node_modules
 dist
 .pgdata
 .pgdata-*
-frontend
-frontend/
 iii
 bruno
 logs
 *.log
 test
-lib
-lib/
+/lib/
 docs
 scripts/postgres.log
 tsconfig.tsbuildinfo
