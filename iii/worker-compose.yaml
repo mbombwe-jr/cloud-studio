@@ -1,0 +1,7 @@
+services:
+  http:
+    worker: true
+  console:
+    worker: true
+  configuration:
+    worker: true
